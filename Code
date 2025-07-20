@@ -1,0 +1,53 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// Pin definitions
+const int MQ3_PIN = A0;
+const int LED_PIN = 13;
+const float THRESHOLD = 50.0;
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("Gas Detector");
+  delay(2000);
+}
+
+void loop() {
+  int sensorValue = analogRead(MQ3_PIN);
+  float voltage = sensorValue * (5.0 / 1023.0);
+  float gasLevel = map(sensorValue, 0, 1023, 0, 100);
+
+  Serial.print("Sensor Value: ");
+  Serial.print(sensorValue);
+  Serial.print(" | Voltage: ");
+  Serial.print(voltage);
+  Serial.print("V | Gas Level: ");
+  Serial.print(gasLevel);
+  Serial.println("%");
+
+  if (gasLevel >= THRESHOLD) {
+    digitalWrite(LED_PIN, HIGH);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Gas Leakage");
+    lcd.setCursor(0, 1);
+    lcd.print("Detected");
+  } else {
+    digitalWrite(LED_PIN, LOW);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Gas Level:");
+    lcd.setCursor(0, 1);
+    lcd.print(gasLevel);
+    lcd.print("%");
+  }
+
+  delay(1000);
+}
